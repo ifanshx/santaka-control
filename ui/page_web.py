@@ -1,4 +1,7 @@
 """Halaman Manajemen Web Server Nginx: kelola vhost, reverse proxy, editor konfigurasi, dan pembaca log."""
+import json
+
+from lib import nginxops
 from ui import components as C
 from ui import layout
 
@@ -6,6 +9,12 @@ from ui import layout
 def render(req, app, sess, qs, t):
     csrf = req.csrf_token(sess)
     base = layout.BASE_PATH
+    web_root = str(app.cfg.get("web_root") or "/var/www")
+    log_dir = nginxops.LOG_DIR
+    web_root_js = json.dumps(web_root)
+    nginx_version = nginxops.version()
+    nginx_label = ("Nginx " + nginx_version) if nginx_version else "Tidak terpasang"
+    log_dir_js = json.dumps(log_dir)
 
     html = f"""
 <!-- STATS OVERVIEW VHOST -->
@@ -42,7 +51,7 @@ def render(req, app, sess, qs, t):
       <span class="lb">ENGINE NGINX</span>
       <span class="tag ok">TERKONFIGURASI</span>
     </div>
-    <span class="vl" style="font-size:22px;">Vhost</span>
+    <span class="vl" style="font-size:22px;">{C.e(nginx_label)}</span>
     <span class="ft"><span class="pulse-dot green"></span> Port 80 &amp; 888 Listening</span>
   </div>
 </div>
@@ -136,7 +145,7 @@ def render(req, app, sess, qs, t):
       <!-- Field Webroot Folder (PHP/Static) -->
       <div class="form-group mb16 hidden" id="group-root">
         <label class="form-label">Root Direktori Berkas Web</label>
-        <input type="text" id="add-root" class="form-input mono" placeholder="/www/wwwroot/domain.com" />
+        <input type="text" id="add-root" class="form-input mono" placeholder="{C.e(web_root)}/domain.com" />
       </div>
 
       <!-- Auto Provisioning Database Checkbox -->
@@ -265,8 +274,8 @@ def render(req, app, sess, qs, t):
     </div>
     <div class="modal-body p16">
       <div class="row gap8 mb12">
-        <button type="button" class="btn btn-sm btn-primary flex-1" id="tab-log-access">Access Log (/www/wwwlogs/[domain].log)</button>
-        <button type="button" class="btn btn-sm btn-outline flex-1" id="tab-log-error">Error Log (/www/wwwlogs/[domain].error.log)</button>
+        <button type="button" class="btn btn-sm btn-primary flex-1" id="tab-log-access">Access Log ({C.e(log_dir)}/[domain].log)</button>
+        <button type="button" class="btn btn-sm btn-outline flex-1" id="tab-log-error">Error Log ({C.e(log_dir)}/[domain].error.log)</button>
       </div>
       <pre id="log-access-content" class="code-editor mono text-xs p12" style="max-height: 380px; overflow-y: auto; background:#0B0F17; color:#E2E8F0; border-radius:var(--radius-md); border:1px solid var(--border); white-space: pre-wrap; line-height:1.5;"></pre>
       <pre id="log-error-content" class="code-editor mono text-xs p12 hidden" style="max-height: 380px; overflow-y: auto; background:#0B0F17; color:#FCA5A5; border-radius:var(--radius-md); border:1px solid var(--border); white-space: pre-wrap; line-height:1.5;"></pre>
@@ -337,7 +346,7 @@ function cleanDomainInput(val){{
 function autoSuggestAlias(){{
   var d = cleanDomainInput(document.getElementById('add-domain').value);
   if (d && !d.startsWith('www.') && d.indexOf('.') > -1) {{
-    document.getElementById('add-root').placeholder = '/www/wwwroot/' + d;
+    document.getElementById('add-root').placeholder = {web_root_js} + '/' + d;
   }}
 }}
 
@@ -634,6 +643,11 @@ function filterSites(){{
   renderSitesView(filtered);
 }}
 
+function emptySitesText(){{
+  var q = (document.getElementById('site-search').value || '').trim();
+  return q ? 'Tidak ada situs yang cocok dengan pencarian.' : 'Belum ada situs web. Klik “Tambah Website” untuk membuat vhost pertama.';
+}}
+
 function renderSitesView(list){{
   renderSitesTable(list);
   renderSitesCards(list);
@@ -642,7 +656,7 @@ function renderSitesView(list){{
 function renderSitesTable(list){{
   var tbody = document.getElementById('sites-tbody');
   if (list.length === 0) {{
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center p24 text-muted">Tidak ada situs yang cocok dengan pencarian.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p24 text-muted">' + emptySitesText() + '</td></tr>';
     return;
   }}
   var html = '';
@@ -698,7 +712,7 @@ function renderSitesCards(list){{
   var grid = document.getElementById('sites-cards-grid');
   if (!grid) return;
   if (list.length === 0) {{
-    grid.innerHTML = '<div class="p24 text-center text-muted col-span-2">Tidak ada situs yang cocok.</div>';
+    grid.innerHTML = '<div class="p24 text-center text-muted col-span-2">' + emptySitesText() + '</div>';
     return;
   }}
   var html = '';

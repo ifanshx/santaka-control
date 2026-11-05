@@ -92,8 +92,28 @@ def reload_nginx():
     return True
 
 
+_VERSION_CACHE = {"at": 0.0, "value": ""}
+
+
+def version():
+    """Versi Nginx aktif (di-cache 5 menit) untuk ditampilkan di panel."""
+    now = time.time()
+    if _VERSION_CACHE["value"] and now - _VERSION_CACHE["at"] < 300:
+        return _VERSION_CACHE["value"]
+    rc, out, err = _run_nginx(["-v"], timeout=5)
+    blob = (err or "") + " " + (out or "")
+    match = re.search(r"nginx/([0-9][0-9.]+)", blob)
+    value = match.group(1) if match else ""
+    _VERSION_CACHE.update({"at": now, "value": value})
+    return value
+
+
 def list_vhosts():
-    """Daftar seluruh virtual host di direktori vhost yang dikonfigurasi."""
+    """Daftar virtual host pengguna di direktori vhost yang dikonfigurasi.
+
+    Berkas pendukung (potongan `map`/`upstream`, endpoint status Nginx) tidak
+    dihitung sebagai situs supaya panel hanya menampilkan vhost sungguhan.
+    """
     os.makedirs(VHOST_DIR, exist_ok=True)
     rows = []
     try:
@@ -111,6 +131,11 @@ def list_vhosts():
             with open(full, "r", encoding="utf-8", errors="replace") as f:
                 content = f.read()
         except OSError:
+            continue
+
+        if not re.search(r"(^|\n)\s*server\s*\{", content):
+            continue
+        if "stub_status" in content:
             continue
 
         # Ekstrak server_name
@@ -331,7 +356,7 @@ def add_vhost(domain, root_dir=None, proxy_pass=None, aliases=None, php_version=
         <h1>{domain}</h1>
         <p>Situs web Anda telah berhasil dipasang di Nginx dan siap digunakan.</p>
         <div class="path">Root Direktori:<br>{root_dir}</div>
-        <div class="ft">Dikelola oleh Santaka Control &middot; Home Server ZTE B860H-V1</div>
+        <div class="ft">Dikelola oleh Santaka Control</div>
     </div>
 </body>
 </html>""")

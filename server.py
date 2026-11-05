@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Santaka Control — panel kendali server untuk STB B860H-V1.
+"""Santaka Control — panel kendali server Linux (stdlib).
 
 Hanya pustaka standar Python 3. Server-rendered HTML + sedikit JS.
 Sasaran memori: <= 35 MB RSS. Nol dependensi, nol build step.
