@@ -1,0 +1,25 @@
+[Unit]
+Description=Santaka Control panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=santaka
+Group=santaka
+WorkingDirectory=/opt/santaka-control
+ExecStart=/usr/bin/env python3 /opt/santaka-control/server.py
+Environment=PYTHONUNBUFFERED=1
+Environment=SANTANTAKA_CONFIG=/etc/santaka-control/config.json
+Environment=SANTANTAKA_DATA=/var/lib/santaka-control
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+ReadWritePaths=/var/lib/santaka-control /var/log /var/backups
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

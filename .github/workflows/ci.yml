@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Compile all sources
+        run: python -m compileall -q server.py lib routes ui tests
+      - name: Unit & integration tests
+        run: python -m unittest discover -s tests -t . -v
+      - name: Smoke test HTTP server
+        run: |
+          printf '{"secret":"ci-secret","bind":"127.0.0.1","port":8099,"roots":["/tmp"]}' > config.json
+          python server.py > /tmp/panel.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8099/healthz > /tmp/health.json; then break; fi
+            sleep 1
+          done
+          cat /tmp/health.json
+          grep -q '"ok": true' /tmp/health.json
+          kill %1

@@ -1,0 +1,30 @@
+{
+  "port": 8081,
+  "bind": "127.0.0.1",
+  "hostname": "panel.local",
+  "base_path": "",
+  "secret": "",
+  "disk_path": "/",
+  "roots": ["/var/www", "/srv", "/opt", "/home"],
+  "session_ttl": 43200,
+  "login_attempts": 6,
+  "login_window": 300,
+
+  "web_root": "/var/www",
+  "nginx_bin": "",
+  "nginx_vhost_dir": "",
+  "nginx_conf": "",
+  "nginx_log_dir": "/var/log/nginx",
+  "caddyfile": "/etc/caddy/Caddyfile",
+  "apps_dir": "/opt/santaka-apps",
+  "apps_domain": "",
+  "apps_lan_domain": "",
+  "php_pool_dir": "/etc/php/8.2/fpm/pool.d",
+
+  "data_mount": "/mnt/data",
+  "backup_dir": "/var/backups/santaka",
+  "state_dir": "/var/lib/santaka-control",
+
+  "phpmyadmin_url": "",
+  "terminal_user": "root"
+}

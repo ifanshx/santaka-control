@@ -1,0 +1,22 @@
+# --- data runtime panel (jangan pernah di-commit) ---
+config.json
+data/
+*.log
+*.log.jsonl
+*.log.jsonl.*
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# --- editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
