@@ -736,7 +736,8 @@ body > .wrap {
   background-color: var(--surface-hover);
 }
 
-.tbl th.act, .tbl td.act {
+.tbl th.act, .tbl td.act,
+.data-table th.act, .data-table td.act {
   text-align: right;
   white-space: nowrap;
 }
